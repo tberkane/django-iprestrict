@@ -116,9 +116,13 @@ class LocationBasedIPGroup(IPGroup):
         verbose_name = 'Location Based IP Group'
 
     def load_locations(self):
-        countries = ", ".join(self.iplocation_set.values_list('country_codes', flat=True)).split(', ')
-        countries.sort()
-        self._countries = ', '.join(countries)
+        if self.id:
+            countries = ", ".join(self.iplocation_set.values_list('country_codes', flat=True)).split(', ')
+            countries.sort()
+            self._countries = ', '.join(countries)
+        else:
+            self._countries = ''
+
 
     load = load_locations
 
