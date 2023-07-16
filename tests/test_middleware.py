@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from unittest import mock
+
 from django.test import TestCase
 from django.test.client import RequestFactory
 from django.test.utils import override_settings
@@ -94,18 +96,21 @@ class ReloadRulesTest(TestCase):
 
 class MiddlewareExtractClientIpTest(TestCase):
     def setUp(self):
-        self.middleware = IPRestrictMiddleware()
+        get_response = mock.MagicMock()
+        self.middleware = IPRestrictMiddleware(get_response)
         self.factory = RequestFactory()
  
     def test_remote_addr_only(self):
-        self.middleware = IPRestrictMiddleware()
+        get_response = mock.MagicMock()
+        self.middleware = IPRestrictMiddleware(get_response)
         request = self.factory.get('', REMOTE_ADDR=LOCAL_IP)
 
         client_ip = self.middleware.extract_client_ip(request)
         self.assertEquals(client_ip, LOCAL_IP)
 
     def test_remote_addr_empty(self):
-        self.middleware = IPRestrictMiddleware()
+        get_response = mock.MagicMock()
+        self.middleware = IPRestrictMiddleware(get_response)
         request = self.factory.get('', REMOTE_ADDR='')
 
         client_ip = self.middleware.extract_client_ip(request)
@@ -113,7 +118,8 @@ class MiddlewareExtractClientIpTest(TestCase):
 
     @override_settings(IPRESTRICT_TRUSTED_PROXIES=(PROXY,))
     def test_single_proxy(self):
-        self.middleware = IPRestrictMiddleware()
+        get_response = mock.MagicMock()
+        self.middleware = IPRestrictMiddleware(get_response)
         request = self.factory.get('', REMOTE_ADDR=PROXY, HTTP_X_FORWARDED_FOR = LOCAL_IP)
 
         client_ip = self.middleware.extract_client_ip(request)
@@ -121,7 +127,8 @@ class MiddlewareExtractClientIpTest(TestCase):
 
     @override_settings(IPRESTRICT_TRUSTED_PROXIES=(PROXY,'2.2.2.2','4.4.4.4'))
     def test_multiple_proxies_one_not_trusted(self):
-        self.middleware = IPRestrictMiddleware()
+        get_response = mock.MagicMock()
+        self.middleware = IPRestrictMiddleware(get_response)
         proxies = ['2.2.2.2', '3.3.3.3', '4.4.4.4']
         request = self.factory.get('', REMOTE_ADDR=PROXY, 
            HTTP_X_FORWARDED_FOR = ', '.join([LOCAL_IP] + proxies))
@@ -135,7 +142,8 @@ class MiddlewareExtractClientIpTest(TestCase):
 
     @override_settings(IPRESTRICT_TRUSTED_PROXIES=(PROXY,'2.2.2.2','3.3.3.3', '4.4.4.4'))
     def test_multiple_proxies_all_trusted(self):
-        self.middleware = IPRestrictMiddleware()
+        get_response = mock.MagicMock()
+        self.middleware = IPRestrictMiddleware(get_response)
         proxies = ['2.2.2.2', '3.3.3.3', '4.4.4.4']
         request = self.factory.get('', REMOTE_ADDR=PROXY, 
            HTTP_X_FORWARDED_FOR = ', '.join([LOCAL_IP] + proxies))
@@ -145,7 +153,8 @@ class MiddlewareExtractClientIpTest(TestCase):
 
     @override_settings(IPRESTRICT_TRUSTED_PROXIES=(PROXY,), IPRESTRICT_TRUST_ALL_PROXIES=True)
     def test_trust_all_proxies_on(self):
-        self.middleware = IPRestrictMiddleware()
+        get_response = mock.MagicMock()
+        self.middleware = IPRestrictMiddleware(get_response)
         proxies = ['1.1.1.1', '2.2.2.2', '3.3.3.3', '4.4.4.4']
         request = self.factory.get('', REMOTE_ADDR=PROXY,
            HTTP_X_FORWARDED_FOR = ', '.join([LOCAL_IP] + proxies))
