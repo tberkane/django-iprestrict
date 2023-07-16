@@ -85,8 +85,10 @@ class RangeBasedIPGroup(IPGroup):
 
     def load_ranges(self):
         self._ranges = {ipu.IPv4: [], ipu.IPv6: []}
-        for r in self.iprange_set.all():
-            self._ranges[r.ip_type].append(r)
+
+        if self.id:
+            for r in self.iprange_set.all():
+                self._ranges[r.ip_type].append(r)
 
     load = load_ranges
 
